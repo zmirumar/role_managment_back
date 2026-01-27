@@ -15,13 +15,27 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Public routes (no authentication required)
+// Public routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/posts', [App\Http\Controllers\Api\PostController::class, 'index']);
+Route::get('/posts/{id}', [App\Http\Controllers\Api\PostController::class, 'show']);
 
-// Protected routes (JWT authentication required)
+// Protected routes
 Route::middleware('auth:api')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/users', [UserController::class, 'index']);
+
+    // Blog Management
+    Route::post('/posts', [App\Http\Controllers\Api\PostController::class, 'store'])->middleware('permission:create_post');
+    Route::put('/posts/{id}', [App\Http\Controllers\Api\PostController::class, 'update'])->middleware('permission:edit_post');
+    Route::delete('/posts/{id}', [App\Http\Controllers\Api\PostController::class, 'destroy'])->middleware('permission:delete_post');
+
+    // Admin Dashboard (OWNER only)
+    Route::middleware('role:OWNER')->prefix('admin')->group(function () {
+        Route::get('/users', [App\Http\Controllers\Api\AdminController::class, 'users']);
+        Route::put('/users/{id}/role', [App\Http\Controllers\Api\AdminController::class, 'changeRole']);
+        Route::get('/roles', [App\Http\Controllers\Api\AdminController::class, 'roles']);
+        Route::put('/roles/{role}/permissions', [App\Http\Controllers\Api\AdminController::class, 'updatePermissions']);
+    });
 });

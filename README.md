@@ -1,208 +1,102 @@
-# Laravel JWT Authentication Backend
+# Laravel RBAC & Blog Backend
 
-A production-ready Laravel backend with JWT authentication and PostgreSQL integration.
+A professional Laravel backend featuring JWT Authentication, a robust Role-Based Access Control (RBAC) system, and a full-featured Blog management system.
 
 ## Features
 
-- ✅ User registration with automatic 'USER' role assignment
-- ✅ User login with JWT token generation
-- ✅ JWT-based authentication for protected routes
-- ✅ Token invalidation on logout (blacklist)
-- ✅ Get authenticated user information
-- ✅ List all registered users
-- ✅ Request validation with custom error messages
-- ✅ API Resources for consistent response formatting
-- ✅ Centralized exception handling
-- ✅ Password hashing (bcrypt)
-- ✅ PostgreSQL database
+### 🔐 Authentication & Authorization
+- **JWT Authentication**: Secure, stateless authentication using `tymon/jwt-auth`.
+- **RBAC System**:
+    - **Roles**: `USER`, `ADMIN`, `SUPERADMIN`, `OWNER`.
+    - **Permissions**: Granular control via permissions (e.g., `create_post`, `edit_post`, `delete_post`).
+    - **Dynamic Management**: OWNER can dynamically update role permissions via the API.
+- **Middleware**: Custom `role` and `permission` middleware for route protection.
+
+### 📝 Blog System
+- **CRUD Operations**: Secure endpoints for managing blog posts.
+- **Permission Enforcement**: Actions are automatically restricted based on the user's role and assigned permissions.
+
+### 🛠️ Admin Dashboard
+- **User Management**: OWNER can list all users and change their roles.
+- **Role/Permission Management**: OWNER can view roles and manage the permission mappings.
 
 ## Tech Stack
-
-- **Laravel**: 12.48.1
-- **JWT Auth**: tymon/jwt-auth 2.2.1
+- **Framework**: Laravel 12
+- **Auth**: JWT (tymon/jwt-auth)
 - **Database**: PostgreSQL
-- **PHP**: 8.2+
+- **Language**: PHP 8.2+
 
-## Quick Start
+---
 
-### 1. Configure Database
+## Setup Instructions
 
-Edit `.env` and update PostgreSQL credentials:
-
+### 1. Database Configuration
+Update your `.env` file with PostgreSQL credentials:
 ```env
 DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
 DB_PORT=5432
 DB_DATABASE=role_management
-DB_USERNAME=your_postgres_username
-DB_PASSWORD=your_postgres_password
+DB_USERNAME=your_username
+DB_PASSWORD=your_password
 ```
 
-### 2. Create Database
-
-```bash
-psql -U postgres
-CREATE DATABASE role_management;
-\q
-```
-
-### 3. Run Migrations
-
+### 2. Run Migrations & Seeders
+This is critical to populate the initial roles and permissions.
 ```bash
 php artisan migrate
+php artisan db:seed --class=RoleSeeder
 ```
 
-### 4. Start Server
-
+### 3. Generate JWT Secret
 ```bash
-php artisan serve
+php artisan jwt:secret
 ```
 
-API available at: `http://localhost:8000`
+---
 
-## API Endpoints
+## API Documentation
 
-### Public Routes
-
+### Public Endpoints
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/register` | Register new user |
-| POST | `/api/login` | Login user |
+| POST | `/api/register` | Register (default role: USER) |
+| POST | `/api/login` | Login and receive JWT token |
 
-### Protected Routes (Require JWT Token)
+### Blog Endpoints (Protected)
+| Method | Endpoint | Permission Required |
+|--------|----------|---------------------|
+| GET | `/api/posts` | None (Publicly Viewable) |
+| POST | `/api/posts` | `create_post` |
+| PUT | `/api/posts/{id}` | `edit_post` |
+| DELETE | `/api/posts/{id}` | `delete_post` |
 
+### Admin Endpoints (OWNER Only)
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/me` | Get authenticated user |
-| POST | `/api/logout` | Logout (invalidate token) |
-| GET | `/api/users` | Get all users |
+| GET | `/api/admin/users` | List all users and their roles |
+| PUT | `/api/admin/users/{id}/role` | Change a user's role |
+| GET | `/api/admin/roles` | List all roles and permissions |
+| PUT | `/api/admin/roles/{role}/permissions` | Update permissions for a role |
 
-## Usage Examples
+---
 
-### Register
+## Role Definitions
 
-```bash
-curl -X POST http://localhost:8000/api/register \
-  -H "Content-Type: application/json" \
-  -d '{"username":"testuser","password":"password123"}'
-```
+| Role | Description | Default Permissions |
+|------|-------------|---------------------|
+| **USER** | Standard customer | None (Read-only blog) |
+| **ADMIN** | Content creator | `create_post` |
+| **SUPERADMIN** | Senior editor | `create_post`, `edit_post`, `delete_post` |
+| **OWNER** | System administrator| Bypasses all checks / Admin Dashboard |
 
-### Login
+---
 
-```bash
-curl -X POST http://localhost:8000/api/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"testuser","password":"password123"}'
-```
-
-### Get Current User
-
-```bash
-curl -X GET http://localhost:8000/api/me \
-  -H "Authorization: Bearer YOUR_TOKEN_HERE"
-```
-
-### Get All Users
-
-```bash
-curl -X GET http://localhost:8000/api/users \
-  -H "Authorization: Bearer YOUR_TOKEN_HERE"
-```
-
-### Logout
-
-```bash
-curl -X POST http://localhost:8000/api/logout \
-  -H "Authorization: Bearer YOUR_TOKEN_HERE"
-```
-
-## Database Schema
-
-### Users Table
-
-| Column | Type | Constraints |
-|--------|------|-------------|
-| id | bigint | Primary Key |
-| username | string | Unique, Required |
-| password | string | Hashed, Required |
-| role | string | Default: 'USER' |
-| created_at | timestamp | Auto |
-| updated_at | timestamp | Auto |
-
-## Security Features
-
-- **Password Hashing**: Automatic bcrypt hashing with 12 rounds
-- **JWT Blacklist**: Tokens invalidated on logout
-- **Request Validation**: Input validation with custom error messages
-- **Hidden Passwords**: Passwords never exposed in API responses
-- **Exception Handling**: Centralized JWT exception handling
-- **Environment Config**: Sensitive data in `.env` file
-
-## Project Structure
-
-```
-app/
-├── Http/
-│   ├── Controllers/Api/
-│   │   ├── AuthController.php    # Authentication endpoints
-│   │   └── UserController.php    # User management endpoints
-│   ├── Requests/
-│   │   ├── RegisterRequest.php   # Registration validation
-│   │   └── LoginRequest.php      # Login validation
-│   └── Resources/
-│       └── UserResource.php      # User data transformation
-└── Models/
-    └── User.php                  # User model with JWT integration
-
-config/
-├── auth.php                      # JWT guard configuration
-└── jwt.php                       # JWT settings
-
-database/migrations/
-└── 0001_01_01_000000_create_users_table.php
-
-routes/
-└── api.php                       # API routes
-```
-
-## JWT Token Payload
-
-```json
-{
-  "id": 1,
-  "username": "testuser",
-  "role": "USER",
-  "iat": 1706265000,
-  "exp": 1706268600
-}
-```
-
-## Response Format
-
-### Success Response (Register/Login)
-
-```json
-{
-  "message": "User registered successfully",
-  "user": {
-    "id": 1,
-    "username": "testuser",
-    "role": "USER",
-    "created_at": "2026-01-26T09:30:00.000000Z",
-    "updated_at": "2026-01-26T09:30:00.000000Z"
-  },
-  "token": "eyJ0eXAiOiJKV1QiLCJhbGc..."
-}
-```
-
-### Error Response
-
-```json
-{
-  "message": "Invalid credentials"
-}
-```
+## Security Highlights
+- **Stateless Auth**: No sessions, perfect for mobile and SPAs.
+- **Role Isolation**: Middleware ensures users only access what they are authorized for.
+- **Input Sanitization**: All requests are validated using FormRequests.
+- **Clean Structure**: Separation of concerns between Controllers, Models, and Resources.
 
 ## License
-
-Open-source software licensed under the MIT license.
+MIT

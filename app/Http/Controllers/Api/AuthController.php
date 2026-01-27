@@ -22,11 +22,12 @@ class AuthController extends Controller
     public function register(RegisterRequest $request): JsonResponse
     {
         try {
-            // Create new user with default USER role
+            $userRole = \App\Models\Role::where('slug', 'USER')->first();
+
             $user = User::create([
                 'username' => $request->username,
-                'password' => $request->password, // Will be automatically hashed
-                'role' => 'USER',
+                'password' => $request->password,
+                'role_id' => $userRole->id,
             ]);
 
             // Generate JWT token
