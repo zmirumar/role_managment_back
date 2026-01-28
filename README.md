@@ -1,222 +1,146 @@
-# 🚀 Laravel RBAC & Blog Management System
+# 🚀 Professional Laravel RBAC & Blog Backend
 
-A high-performance, professional Laravel 12 backend featuring **JWT-based Authentication**, a dynamic **Role-Based Access Control (RBAC)** system, and a secured **Blog Management Layer**.
-
----
-
-## 🌟 Key Features
-
--   **🔐 Secure Authentication**: Stateless JWT authentication via `tymon/jwt-auth`.
--   **🛡️ Granular RBAC**: Highly flexible Role and Permission system.
--   **📝 Content Management**: Secure CRUD for blog posts with permission enforcement.
--   **⚙️ Dynamic Administration**: `OWNER` dashboard for real-time user role and permission management.
--   **✅ Input Validation**: Strictly typed request validation using Laravel FormRequests.
--   **🎨 Premium Code Quality**: PSR-12 compliant, clean architecture, and optimized queries.
+A production-ready Laravel 12 backend featuring **JWT Authentication**, a dynamic **database-driven Role & Permission system**, and a secured **Blog API**.
 
 ---
 
-## 🛠️ Tech Stack
+## 🌟 Core Features
 
--   **Framework**: [Laravel 12.x](https://laravel.com/)
--   **Auth**: [JWT-Auth](https://github.com/tymondesigns/jwt-auth)
--   **Database**: [PostgreSQL](https://www.postgresql.org/)
--   **Language**: [PHP 8.2+](https://www.php.net/)
+- **🔐 Stateless Auth**: Full JWT authentication (Register, Login, Logout, Me).
+- **🛡️ Dynamic RBAC**: Roles and permissions are stored in the database and checked at runtime.
+- **👑 Owner Control**: A specialized `OWNER` role that can manage users, roles, and permissions dynamically.
+- **📝 Blog Management**: Secure CRUD for posts with granular permission enforcement.
+- **⚡ Frontend Ready**: Auth responses include a boolean permission map for immediate UI adjustments.
+- **✅ Modern Validation**: All inputs are validated using Laravel Form Requests.
 
 ---
 
-## ⚙️ Installation & Setup
+## 🛠️ Technical Stack
 
-### 1. Prerequisites
-Ensure you have the following installed:
+- **Framework**: Laravel 12.x
+- **Auth**: `tymon/jwt-auth`
+- **Database**: PostgreSQL
+- **Middleware**: Custom `role` and `permission` filters.
+
+---
+
+## ⚙️ Installation
+
+### 1. Requirements
 - PHP 8.2+
 - Composer
 - PostgreSQL
 
-### 2. Clone and Install
+### 2. Setup
 ```bash
-git clone <repository-url>
-cd role_managment_backend
+# Install dependencies
 composer install
-```
 
-### 3. Environment Configuration
-Copy the example environment file and update your database credentials:
-```bash
+# Configure environment
 cp .env.example .env
-```
-Update these lines in your `.env`:
-```env
-DB_CONNECTION=pgsql
-DB_HOST=127.0.0.1
-DB_PORT=5432
-DB_DATABASE=role_management
-DB_USERNAME=your_db_user
-DB_PASSWORD=your_db_password
-```
+# Set DB_DATABASE, DB_USERNAME, DB_PASSWORD in .env
 
-### 4. Database Setup
-Run migrations and populate the initial roles/permissions:
-```bash
-php artisan migrate
-php artisan db:seed --class=RoleSeeder
-```
-
-### 5. Authentication Setup
-Generate the JWT secret key:
-```bash
+# Generate keys
+php artisan key:generate
 php artisan jwt:secret
-```
 
-### 6. Start the Server
-```bash
-php artisan serve
+# Initialize database
+php artisan migrate:fresh --seed
 ```
 
 ---
 
-## 🏗️ RBAC Architecture
+## 👥 Roles & Permissions
 
-The system uses a hierarchy of roles, each mapped to specific permissions.
-
-### 👥 Roles & Hierarchy
-| Role | Title | Description |
+### Initial Roles
+| Role | Level | Default Permissions |
 | :--- | :--- | :--- |
-| `USER` | Customer | Standard user. Access to read posts only. |
-| `ADMIN` | Editor | Can create new posts. |
-| `SUPERADMIN` | Manager | Can create, edit, and delete posts. |
-| `OWNER` | System Admin | Bypasses all guards. Can manage users, roles, and permissions. |
+| `OWNER` | Max | Full access to everything (Immutable). |
+| `SUPERADMIN` | High | `post.read`, `post.create`, `post.edit`, `post.delete` |
+| `ADMIN` | Mid | `post.read`, `post.create` |
+| `USER` | Low | `post.read` |
 
-### 🔑 Permissions
-| Slug | Action |
-| :--- | :--- |
-| `create_post` | Can create a new blog entry. |
-| `edit_post` | Can modify existing blog entries. |
-| `delete_post` | Can remove blog entries from the system. |
+### Dynamic Permissions
+Permissions are slugs: `post.read`, `post.create`, `post.edit`, `post.delete`.
+Changes to `role_permissions` in the database take effect **immediately**.
 
 ---
 
-## 📚 API Reference & CURL Commands
+## 📚 API Documentation
 
-### 1. Authentication Endpoints
+### 🔓 Public / Auth API
 
-#### **Register User**
-Create a new account. All registered users are assigned the `USER` role by default.
+#### **Register**
+`POST /api/register`
+Default role assigned: `USER`.
 ```bash
 curl -X POST http://localhost:8000/api/register \
      -H "Content-Type: application/json" \
-     -H "Accept: application/json" \
-     -d '{
-           "username": "johndoe",
-           "password": "password123"
-         }'
+     -d '{"username": "newuser", "password": "password"}'
 ```
 
-#### **Login User**
-Authenticates and returns a JWT Bearer token.
+#### **Login**
+`POST /api/login`
+Returns user, permissions map, and token.
 ```bash
 curl -X POST http://localhost:8000/api/login \
      -H "Content-Type: application/json" \
-     -H "Accept: application/json" \
-     -d '{
-           "username": "johndoe",
-           "password": "password123"
-         }'
+     -d '{"username": "owner", "password": "password"}'
 ```
 
-#### **Get Profile (Protected)**
-Get details of the currently authenticated user.
+#### **Get Auth User**
+`GET /api/me`
 ```bash
 curl -X GET http://localhost:8000/api/me \
-     -H "Authorization: Bearer YOUR_TOKEN_HERE" \
-     -H "Accept: application/json"
+     -H "Authorization: Bearer <TOKEN>"
 ```
 
 ---
 
-### 2. Blog Management Endpoints
+### 📝 Blog API
 
-#### **List All Posts (Public)**
-```bash
-curl -X GET http://localhost:8000/api/posts \
-     -H "Accept: application/json"
-```
-
-#### **Create Post (Requires `create_post`)**
-```bash
-curl -X POST http://localhost:8000/api/posts \
-     -H "Authorization: Bearer YOUR_TOKEN_HERE" \
-     -H "Content-Type: application/json" \
-     -d '{
-           "title": "My Awesome Post",
-           "content": "This is the content of the post."
-         }'
-```
-
-#### **Update Post (Requires `edit_post`)**
-```bash
-curl -X PUT http://localhost:8000/api/posts/{id} \
-     -H "Authorization: Bearer YOUR_TOKEN_HERE" \
-     -H "Content-Type: application/json" \
-     -d '{
-           "title": "Updated Title",
-           "content": "Updated Content"
-         }'
-```
-
-#### **Delete Post (Requires `delete_post`)**
-```bash
-curl -X DELETE http://localhost:8000/api/posts/{id} \
-     -H "Authorization: Bearer YOUR_TOKEN_HERE"
-```
+| Method | Endpoint | Permission Required |
+| :--- | :--- | :--- |
+| `GET` | `/api/posts` | `post.read` |
+| `POST` | `/api/posts` | `post.create` |
+| `PUT` | `/api/posts/{id}` | `post.edit` |
+| `DELETE` | `/api/posts/{id}` | `post.delete` |
 
 ---
 
-### 3. Owner/Admin Dashboard (OWNER Only)
+### 👑 Owner Dashboard (Admin Only)
 
-#### **List All Users**
-```bash
-curl -X GET http://localhost:8000/api/admin/users \
-     -H "Authorization: Bearer OWNER_TOKEN_HERE"
-```
-
-#### **Change User Role**
-```bash
-curl -X PUT http://localhost:8000/api/admin/users/{user_id}/role \
-     -H "Authorization: Bearer OWNER_TOKEN_HERE" \
-     -H "Content-Type: application/json" \
-     -d '{
-           "role": "ADMIN"
-         }'
-```
-
-#### **List Roles & Permissions**
-```bash
-curl -X GET http://localhost:8000/api/admin/roles \
-     -H "Authorization: Bearer OWNER_TOKEN_HERE"
-```
-
-#### **Update Role Permissions**
-Dynamically sync permissions to a specific role.
-```bash
-curl -X PUT http://localhost:8000/api/admin/roles/ADMIN/permissions \
-     -H "Authorization: Bearer OWNER_TOKEN_HERE" \
-     -H "Content-Type: application/json" \
-     -d '{
-           "permissions": ["create_post", "edit_post"]
-         }'
-```
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/admin/users` | List all users. |
+| `PUT` | `/api/admin/users/{id}/role` | Change user role. |
+| `GET` | `/api/admin/roles` | List all roles & permissions. |
+| `PUT` | `/api/admin/roles/{id}/permissions` | Update role permissions. |
 
 ---
 
-## 📂 Project Structure
+## 📄 Response Format (Auth)
 
-- `app/Http/Controllers/Api`: RESTful API Controllers.
-- `app/Http/Middleware`: RBAC checking logic (`CheckRole`, `CheckPermission`).
-- `app/Models`: Core Domain Models (User, Role, Permission, Post).
-- `database/seeders`: Initialization logic for the RBAC system.
-- `routes/api.php`: The API entry point.
+When you login or call `/me`, the backend returns:
+```json
+{
+  "user": {
+    "id": 1,
+    "username": "owner",
+    "role": "OWNER"
+  },
+  "permissions": {
+    "post.read": true,
+    "post.create": true,
+    "post.edit": true,
+    "post.delete": true
+  },
+  "token": "..."
+}
+```
+The `permissions` object is a dynamic map. Frontend should use this to toggle UI elements.
 
 ---
 
 ## 📜 License
-MIT License. Feel free to use and modify for your own projects.
+MIT

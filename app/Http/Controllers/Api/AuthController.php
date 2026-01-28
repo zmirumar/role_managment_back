@@ -36,6 +36,7 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'User registered successfully',
                 'user' => new UserResource($user),
+                'permissions' => $user->getPermissionsMap(),
                 'token' => $token,
             ], 201);
         } catch (\Exception $e) {
@@ -68,6 +69,7 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Login successful',
             'user' => new UserResource($user),
+            'permissions' => $user->getPermissionsMap(),
             'token' => $token,
         ], 200);
     }
@@ -84,6 +86,7 @@ class AuthController extends Controller
 
             return response()->json([
                 'user' => new UserResource($user),
+                'permissions' => $user->getPermissionsMap(),
             ], 200);
         } catch (\Exception $e) {
             return response()->json([

@@ -8,7 +8,8 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\Permission;
-use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\UpdateUserRoleRequest;
+use App\Http\Requests\UpdateRolePermissionsRequest;
 
 class AdminController extends Controller
 {
@@ -18,23 +19,26 @@ class AdminController extends Controller
         return response()->json($users);
     }
 
-    public function changeRole(Request $request, $id)
+    public function changeRole(UpdateUserRoleRequest $request, $id)
     {
-        $validator = Validator::make($request->all(), [
-            'role' => 'required|exists:roles,slug',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-
         $user = User::find($id);
 
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
         }
 
+        // Check if user is OWNER (Owner cannot be modified)
+        if ($user->hasRole('OWNER')) {
+            return response()->json(['message' => 'Owner role cannot be modified'], 403);
+        }
+
         $role = Role::where('slug', $request->role)->first();
+        
+        // Cannot change user to OWNER
+        if ($role->slug === 'OWNER') {
+            return response()->json(['message' => 'Cannot assign OWNER role'], 403);
+        }
+
         $user->role()->associate($role);
         $user->save();
 
@@ -47,21 +51,17 @@ class AdminController extends Controller
         return response()->json($roles);
     }
 
-    public function updatePermissions(Request $request, $role)
+    public function updatePermissions(UpdateRolePermissionsRequest $request, $id)
     {
-        $targetRole = Role::where('slug', $role)->first();
+        $targetRole = Role::find($id);
 
         if (!$targetRole) {
             return response()->json(['message' => 'Role not found'], 404);
         }
 
-        $validator = Validator::make($request->all(), [
-            'permissions' => 'array',
-            'permissions.*' => 'exists:permissions,slug',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+        // Check if role is OWNER (Owner's permissions skip checks and technically don't need update)
+        if ($targetRole->slug === 'OWNER') {
+            return response()->json(['message' => 'Owner permissions cannot be modified'], 403);
         }
 
         $permissionIds = Permission::whereIn('slug', $request->permissions ?? [])->pluck('id');

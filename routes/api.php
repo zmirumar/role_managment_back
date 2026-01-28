@@ -27,15 +27,15 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 
     // Blog Management
-    Route::post('/posts', [App\Http\Controllers\Api\PostController::class, 'store'])->middleware('permission:create_post');
-    Route::put('/posts/{id}', [App\Http\Controllers\Api\PostController::class, 'update'])->middleware('permission:edit_post');
-    Route::delete('/posts/{id}', [App\Http\Controllers\Api\PostController::class, 'destroy'])->middleware('permission:delete_post');
+    Route::post('/posts', [App\Http\Controllers\Api\PostController::class, 'store'])->middleware('permission:post.create');
+    Route::put('/posts/{id}', [App\Http\Controllers\Api\PostController::class, 'update'])->middleware('permission:post.edit');
+    Route::delete('/posts/{id}', [App\Http\Controllers\Api\PostController::class, 'destroy'])->middleware('permission:post.delete');
 
     // Admin Dashboard (OWNER only)
     Route::middleware('role:OWNER')->prefix('admin')->group(function () {
         Route::get('/users', [App\Http\Controllers\Api\AdminController::class, 'users']);
         Route::put('/users/{id}/role', [App\Http\Controllers\Api\AdminController::class, 'changeRole']);
         Route::get('/roles', [App\Http\Controllers\Api\AdminController::class, 'roles']);
-        Route::put('/roles/{role}/permissions', [App\Http\Controllers\Api\AdminController::class, 'updatePermissions']);
+        Route::put('/roles/{id}/permissions', [App\Http\Controllers\Api\AdminController::class, 'updatePermissions']);
     });
 });
