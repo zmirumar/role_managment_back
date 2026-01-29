@@ -64,9 +64,9 @@ class RolePermissionSeeder extends Seeder
         // Create Owner User
         $ownerRole = Role::where('slug', 'OWNER')->first();
         User::updateOrCreate(
-            ['username' => 'owner'],
+            ['username' => 'admin'], // Change this to your desired admin username
             [
-                'password' => Hash::make('password'),
+                'password' => Hash::make('password123'), // Change this to your desired admin password
                 'role_id' => $ownerRole->id,
             ]
         );

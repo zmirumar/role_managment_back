@@ -88,9 +88,10 @@ curl -X POST http://localhost:8000/api/register \
 #### **Login**
 Returns the **JWToken** and the **Permissions Map**.
 ```bash
-curl -X POST http://localhost:8000/api/login \
+curl -X POST http://localhost:8080/api/login \
      -H "Content-Type: application/json" \
-     -d '{"username": "owner", "password": "password"}'
+     -H "Accept: application/json" \
+     -d '{"username": "<YOUR_USERNAME>", "password": "<YOUR_PASSWORD>"}'
 ```
 
 #### **Get Profile (Me)**
