@@ -106,6 +106,7 @@ curl -X GET http://localhost:8000/api/me \
 | Action | Endpoint | Permission |
 | :--- | :--- | :--- |
 | **List All** | `GET /api/posts` | `post.read` |
+| **Show Single** | `GET /api/posts/{id}` | `post.read` |
 | **Create** | `POST /api/posts` | `post.create` |
 | **Update** | `PUT /api/posts/{id}` | `post.edit` |
 | **Delete** | `DELETE /api/posts/{id}` | `post.delete` |
@@ -113,10 +114,17 @@ curl -X GET http://localhost:8000/api/me \
 #### **1. List All Posts**
 Publically accessible for reading.
 ```bash
-curl -X GET http://localhost:8080/api/posts
+curl -X GET http://localhost:8080/api/posts \
+     -H "Accept: application/json"
 ```
 
-#### **2. Create a Post**
+#### **2. Show a Single Post**
+```bash
+curl -X GET http://localhost:8080/api/posts/<POST_ID> \
+     -H "Accept: application/json"
+```
+
+#### **3. Create a Post**
 Requires `post.create` permission (ADMIN, SUPERADMIN, OWNER).
 ```bash
 curl -X POST http://localhost:8080/api/posts \
@@ -129,10 +137,10 @@ curl -X POST http://localhost:8080/api/posts \
      }'
 ```
 
-#### **3. Update a Post**
+#### **4. Update a Post**
 Requires `post.edit` permission (SUPERADMIN, OWNER).
 ```bash
-curl -X PUT http://localhost:8080/api/posts/1 \
+curl -X PUT http://localhost:8080/api/posts/<POST_ID> \
      -H "Authorization: Bearer <YOUR_TOKEN>" \
      -H "Content-Type: application/json" \
      -H "Accept: application/json" \
@@ -142,10 +150,10 @@ curl -X PUT http://localhost:8080/api/posts/1 \
      }'
 ```
 
-#### **4. Delete a Post**
+#### **5. Delete a Post**
 Requires `post.delete` permission (SUPERADMIN, OWNER).
 ```bash
-curl -X DELETE http://localhost:8080/api/posts/1 \
+curl -X DELETE http://localhost:8080/api/posts/<POST_ID> \
      -H "Authorization: Bearer <YOUR_TOKEN>" \
      -H "Accept: application/json"
 ```
