@@ -34,6 +34,10 @@ class AdminController extends Controller
 
         $role = Role::where('slug', $request->role)->first();
         
+        if (!$role) {
+            return response()->json(['message' => 'Role not found'], 404);
+        }
+
         // Cannot change user to OWNER
         if ($role->slug === 'OWNER') {
             return response()->json(['message' => 'Cannot assign OWNER role'], 403);

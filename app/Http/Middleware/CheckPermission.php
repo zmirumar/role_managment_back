@@ -15,15 +15,17 @@ class CheckPermission
      */
     public function handle(Request $request, Closure $next, string $permission): Response
     {
-        if (!auth()->check()) {
+        $user = auth('api')->user();
+
+        if (!$user) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        if (auth()->user()->hasRole('OWNER')) {
+        if ($user->hasRole('OWNER')) {
             return $next($request);
         }
 
-        if (auth()->user()->hasPermission($permission)) {
+        if ($user->hasPermission($permission)) {
             return $next($request);
         }
 

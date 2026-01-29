@@ -51,7 +51,7 @@ php artisan migrate:fresh --seed
 
 ### 4. Run the Server
 ```bash
-php artisan serve
+php artisan serve --port=8080
 ```
 
 ---

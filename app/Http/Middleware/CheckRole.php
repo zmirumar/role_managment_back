@@ -15,11 +15,11 @@ class CheckRole
      */
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
-        if (!auth()->check()) {
+        $user = auth('api')->user();
+
+        if (!$user) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
-
-        $user = auth()->user();
 
         foreach ($roles as $role) {
             if ($user->hasRole($role)) {
