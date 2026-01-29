@@ -110,6 +110,46 @@ curl -X GET http://localhost:8000/api/me \
 | **Update** | `PUT /api/posts/{id}` | `post.edit` |
 | **Delete** | `DELETE /api/posts/{id}` | `post.delete` |
 
+#### **1. List All Posts**
+Publically accessible for reading.
+```bash
+curl -X GET http://localhost:8080/api/posts
+```
+
+#### **2. Create a Post**
+Requires `post.create` permission (ADMIN, SUPERADMIN, OWNER).
+```bash
+curl -X POST http://localhost:8080/api/posts \
+     -H "Authorization: Bearer <YOUR_TOKEN>" \
+     -H "Content-Type: application/json" \
+     -H "Accept: application/json" \
+     -d '{
+       "title": "My First Post",
+       "content": "This is the content of the post."
+     }'
+```
+
+#### **3. Update a Post**
+Requires `post.edit` permission (SUPERADMIN, OWNER).
+```bash
+curl -X PUT http://localhost:8080/api/posts/1 \
+     -H "Authorization: Bearer <YOUR_TOKEN>" \
+     -H "Content-Type: application/json" \
+     -H "Accept: application/json" \
+     -d '{
+       "title": "Updated Title",
+       "content": "Updated content."
+     }'
+```
+
+#### **4. Delete a Post**
+Requires `post.delete` permission (SUPERADMIN, OWNER).
+```bash
+curl -X DELETE http://localhost:8080/api/posts/1 \
+     -H "Authorization: Bearer <YOUR_TOKEN>" \
+     -H "Accept: application/json"
+```
+
 ---
 
 ### 👑 Owner Dashboard (Admin Endpoints)
