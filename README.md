@@ -94,6 +94,27 @@ curl -X POST http://localhost:8080/api/login \
      -d '{"username": "<YOUR_USERNAME>", "password": "<YOUR_PASSWORD>"}'
 ```
 
+**Example Response:**
+```json
+{
+  "message": "Login successful",
+  "user": {
+    "id": 1,
+    "username": "owner",
+    "role": "OWNER",
+    "created_at": "2024-01-30T10:00:00.000000Z",
+    "updated_at": "2024-01-30T10:00:00.000000Z"
+  },
+  "permissions": {
+    "post.read": true,
+    "post.create": true,
+    "post.edit": true,
+    "post.delete": true
+  },
+  "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+}
+```
+
 #### **Get Profile (Me)**
 ```bash
 curl -X GET http://localhost:8000/api/me \
