@@ -31,8 +31,8 @@ Route::middleware('auth:api')->group(function () {
     Route::put('/posts/{id}', [App\Http\Controllers\Api\PostController::class, 'update'])->middleware('permission:post.edit');
     Route::delete('/posts/{id}', [App\Http\Controllers\Api\PostController::class, 'destroy'])->middleware('permission:post.delete');
 
-    // Admin Dashboard (OWNER only)
-    Route::middleware('role:OWNER')->prefix('admin')->group(function () {
+    // Admin Dashboard (ADMIN only)
+    Route::middleware('role:ADMIN')->prefix('admin')->group(function () {
         Route::get('/users', [App\Http\Controllers\Api\AdminController::class, 'users']);
         Route::put('/users/{id}/role', [App\Http\Controllers\Api\AdminController::class, 'changeRole']);
         Route::get('/roles', [App\Http\Controllers\Api\AdminController::class, 'roles']);

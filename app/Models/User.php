@@ -92,7 +92,7 @@ class User extends Authenticatable implements JWTSubject
             return false;
         }
 
-        if ($this->hasRole('OWNER')) {
+        if ($this->hasRole('ADMIN')) {
             return true;
         }
 
@@ -103,11 +103,11 @@ class User extends Authenticatable implements JWTSubject
     {
         $allPermissions = \App\Models\Permission::all();
         $userPermissions = $this->role ? $this->role->permissions->pluck('slug')->toArray() : [];
-        $isOwner = $this->hasRole('OWNER');
+        $isAdmin = $this->hasRole('ADMIN');
 
         $map = [];
         foreach ($allPermissions as $permission) {
-            $map[$permission->slug] = $isOwner || in_array($permission->slug, $userPermissions);
+            $map[$permission->slug] = $isAdmin || in_array($permission->slug, $userPermissions);
         }
 
         return $map;

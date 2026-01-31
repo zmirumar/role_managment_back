@@ -15,7 +15,7 @@ class AdminController extends Controller
 {
     public function users()
     {
-        $users = User::with('role:id,name,slug')->get();
+        $users = User::with('role.permissions')->get();
         return response()->json($users);
     }
 
@@ -27,26 +27,33 @@ class AdminController extends Controller
             return response()->json(['message' => 'User not found'], 404);
         }
 
-        // Check if user is OWNER (Owner cannot be modified)
-        if ($user->hasRole('OWNER')) {
-            return response()->json(['message' => 'Owner role cannot be modified'], 403);
+        // Check if user is ADMIN (Admin cannot be modified this way)
+        if ($user->hasRole('ADMIN')) {
+            return response()->json(['message' => 'Main Admin role cannot be modified'], 403);
         }
 
-        $role = Role::where('slug', $request->role)->first();
+        $roleName = $request->role; // This is receiving the role name/slug
+        $slug = \Illuminate\Support\Str::slug($roleName);
         
-        if (!$role) {
-            return response()->json(['message' => 'Role not found'], 404);
+        if ($slug === 'admin') {
+             return response()->json(['message' => 'Cannot assign ADMIN role'], 403);
         }
 
-        // Cannot change user to OWNER
-        if ($role->slug === 'OWNER') {
-            return response()->json(['message' => 'Cannot assign OWNER role'], 403);
+        $role = Role::firstOrCreate(
+            ['slug' => $slug],
+            ['name' => $roleName]
+        );
+
+        // If permissions are provided, sync them to the role
+        if ($request->has('permissions')) {
+             $permissionIds = Permission::whereIn('slug', $request->permissions)->pluck('id');
+             $role->permissions()->sync($permissionIds);
         }
 
         $user->role()->associate($role);
         $user->save();
 
-        return response()->json(['message' => 'User role updated successfully', 'user' => $user->load('role')]);
+        return response()->json(['message' => 'User role updated successfully', 'user' => $user->load('role.permissions')]);
     }
 
     public function roles()
@@ -63,9 +70,9 @@ class AdminController extends Controller
             return response()->json(['message' => 'Role not found'], 404);
         }
 
-        // Check if role is OWNER (Owner's permissions skip checks and technically don't need update)
-        if ($targetRole->slug === 'OWNER') {
-            return response()->json(['message' => 'Owner permissions cannot be modified'], 403);
+        // Check if role is ADMIN
+        if ($targetRole->slug === 'ADMIN') {
+            return response()->json(['message' => 'Admin permissions cannot be modified'], 403);
         }
 
         $permissionIds = Permission::whereIn('slug', $request->permissions ?? [])->pluck('id');

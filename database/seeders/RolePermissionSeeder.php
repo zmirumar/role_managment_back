@@ -30,17 +30,9 @@ class RolePermissionSeeder extends Seeder
 
         // Define Roles
         $roles = [
-            'OWNER' => [
-                'name' => 'Owner',
-                'permissions' => array_keys($permissions),
-            ],
-            'SUPERADMIN' => [
-                'name' => 'Super Admin',
-                'permissions' => ['post.read', 'post.create', 'post.edit', 'post.delete'],
-            ],
             'ADMIN' => [
                 'name' => 'Admin',
-                'permissions' => ['post.read', 'post.create'],
+                'permissions' => array_keys($permissions), // Admin gets all permissions
             ],
             'USER' => [
                 'name' => 'User',
@@ -61,13 +53,13 @@ class RolePermissionSeeder extends Seeder
             $role->permissions()->sync($rolePermissions);
         }
 
-        // Create Owner User
-        $ownerRole = Role::where('slug', 'OWNER')->first();
+        // Create Admin User
+        $adminRole = Role::where('slug', 'ADMIN')->first();
         User::updateOrCreate(
             ['username' => 'mirumar'], // Change this to your desired admin username
             [
                 'password' => Hash::make('boshliqn1'), // Change this to your desired admin password
-                'role_id' => $ownerRole->id,
+                'role_id' => $adminRole->id,
             ]
         );
     }
